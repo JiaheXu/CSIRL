@@ -12,14 +12,22 @@ import itertools
 import numpy as np
 from tensorboardX import SummaryWriter
 from itertools import count
-from make_envs import make_env
+
+from make_envs import make_env # from make_envs.py
+
 from omegaconf import DictConfig, OmegaConf
-from dataset.rs_memory import Memory
-from dataset.load_data import Dataset
+
+from dataset.rs_memory import Memory # from /dataset/rs_memory
+from dataset.load_data import Dataset # from /dataset/load_data
+
 from torch.autograd import Variable
+
 from model.sac_rs import SAC_RS
+
 torch.set_num_threads(2)
+
 cur_pth = os.getcwd()
+
 def get_args(cfg: DictConfig):
     # cfg.device = "cpu"
     cfg.device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -63,19 +71,32 @@ def main(cfg: DictConfig):
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     env_args=args.env
+    
+    ##################
+    # two envs
+    ##################
     env = make_env(args)
     eval_env = make_env(args)
+    
     env.seed(args.seed)
     eval_env.seed(args.seed + 10)
+    
+
     print(cur_pth)
+
     dataset_0=Dataset(cur_pth, args)
+    
     g1 = int(env_args.g1)
+    
     REPLAY_MEMORY = int(env_args.replay_mem)        # total buffer size
     INITIAL_MEMORY = int(env_args.initial_mem)      # buffer size that can start learning
     EPISODE_STEPS = int(env_args.eps_steps)         # maximum epoch_step number
     ROUND_LEARN_STEPS = int(env_args.round_steps)
+    
     LEARN_STEPS = ROUND_LEARN_STEPS*dataset_0.expert_data["lengths"][0]  # maximum learning_step number
+    
     agent = make_agent(env, args)
+    
     online_memory_replay = Memory(REPLAY_MEMORY//2, args.seed+1)
     learn_step = 0
     all_step = 0
